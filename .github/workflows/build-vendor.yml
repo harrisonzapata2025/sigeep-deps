@@ -1,0 +1,46 @@
+name: Build vendor
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_pgsql, bcmath, gd, intl, zip, redis, pcntl
+          coverage: none
+
+      - name: Install SIGEEP stack
+        run: |
+          composer require \
+            livewire/livewire:^3.5 \
+            spatie/laravel-permission:^6.9 \
+            spatie/laravel-medialibrary:^11.0 \
+            owen-it/laravel-auditing:^13.6 \
+            maatwebsite/excel:^3.1 \
+            barryvdh/laravel-dompdf:^3.1 \
+            laravel/reverb:^1.0 \
+            predis/predis:^2.2 \
+            intervention/image:^3.7 \
+            --no-audit --no-interaction
+
+      - name: Install Breeze (dev)
+        run: composer require laravel/breeze --dev --no-audit --no-interaction
+
+      - name: Upload vendor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sigeep-vendor
+          path: |
+            vendor/
+            composer.json
+            composer.lock
+          retention-days: 7
